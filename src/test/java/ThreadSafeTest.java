@@ -18,7 +18,6 @@ class ThreadSafeTest {
         ThreadSafe thread2 = new ThreadSafe(forgettingMap);
         ThreadSafe thread3 = new ThreadSafe(forgettingMap);
 
-        // call start or run? (run not called automatically?)
         thread1.start();
         thread2.start();
         thread3.start();
