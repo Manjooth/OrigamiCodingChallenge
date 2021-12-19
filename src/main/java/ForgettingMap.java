@@ -4,42 +4,78 @@ import java.util.Map;
 // K, V like generics
 public class ForgettingMap<K,V> implements ForgettingMapInterface<K,V>{
 
-    private final Map<K, V> associations = new HashMap<>();
-    private final Map<K, Integer> popularityOfAssociations = new HashMap<>();
+    private final Map<K, V> associations = new HashMap<>(); // map to store associations
+    private final Map<K, Integer> popularityOfAssociations = new HashMap<>(); // map to store popularity of given associations
     private final int maximumCapacity;
-    private int size = 0;
 
+    /**
+     Constructor that takes the max capacity as
+     per the requirements.
+
+     @param maximumCapacity is the max capacity of the forgetting map
+     **/
     public ForgettingMap(final int maximumCapacity) {
         this.maximumCapacity = maximumCapacity;
     }
 
+    /**
+     Add a key -> value pair to the associations map if the map is below the maximum capacity. Otherwise, remove the
+     least popular key -> value pair and insert the new key -> value pair.
+
+     Adding 'synchronized' means that when multiple threads try to access the method, it allows only one thread
+     to have access at a time.
+
+     @param key the key to be placed in the map
+     @param value the value to be placed in the map
+     @return if adding association was successful or not
+     **/
     @Override
-    public synchronized void add(K key, V value) {
-        // do I even update once trying to add or once find is called
-        if (isBelowMaximumCapacity() && containsKey(key)) {
-            updatePopularity(key); // does this need to be done? (need to make an assumption)
-        } else if(isBelowMaximumCapacity() && !containsKey(key)) {
+    public synchronized String add(final K key, final V value)
+    {
+        if (containsKey(key))
+        {
+            return "Forgetting Map already contains key";
+        } else if(isBelowMaximumCapacity() && !containsKey(key))
+        {
             addAssociationAndPopularity(key, value);
-        } else {
+        } else
+        {
             removeLeastUsedAssociation();
             addAssociationAndPopularity(key, value);
         }
+
+        return "Success";
     }
 
+    /**
+     Find key, if one exists, and increment its popularity in the popularityOfAssociations map. If the key does not
+     exist in the associations map, return null.
+
+     Adding 'synchronized' means that when multiple threads try to access the method, it allows only one thread
+     to have access at a time.
+
+     @param key the key to search in the map
+     @return the found corresponding value to the key
+     **/
     @Override
-    public synchronized V find(K key) {
-        if(containsKey(key)){
+    public synchronized V find(final K key)
+    {
+        if(containsKey(key))
+        {
             updatePopularity(key);
             return associations.get(key);
         }
         return null;
     }
 
-    private void removeLeastUsedAssociation() {
+    private void removeLeastUsedAssociation()
+    {
         K leastUsed =  null;
         int count = Integer.MAX_VALUE;
-        for(K key : popularityOfAssociations.keySet()){
-            if(popularityOfAssociations.get(key) < count){
+        for(K key : popularityOfAssociations.keySet())
+        {
+            if(popularityOfAssociations.get(key) < count)
+            {
                 count = popularityOfAssociations.get(key);
                 leastUsed = key;
             }
@@ -48,29 +84,26 @@ public class ForgettingMap<K,V> implements ForgettingMapInterface<K,V>{
         // could also try and sort the hashmap and then remove the last element (would that be quicker or just more complex?)
         associations.remove(leastUsed);
         popularityOfAssociations.remove(leastUsed);
-
-        size--;
     }
 
-    private void addAssociationAndPopularity(K key, V value) {
+    private void addAssociationAndPopularity(final K key, final V value)
+    {
         associations.put(key, value);
         popularityOfAssociations.put(key, 0);
-        size++;
     }
 
-    private void updatePopularity(K key) {
+    private void updatePopularity(final K key)
+    {
         popularityOfAssociations.put(key, popularityOfAssociations.get(key) + 1);
     }
 
-    private boolean containsKey(K key) {
+    private boolean containsKey(final K key)
+    {
         return associations.containsKey(key);
     }
 
-    private boolean isBelowMaximumCapacity() {
+    private boolean isBelowMaximumCapacity()
+    {
         return associations.size() < maximumCapacity;
-    }
-
-    public int getSize(){
-        return size;
     }
 }

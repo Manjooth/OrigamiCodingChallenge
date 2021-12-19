@@ -1,10 +1,10 @@
 import java.util.stream.IntStream;
 
-public class ThreadSafe extends Thread{
+public class ThreadSafeHelper extends Thread{
 
     private final ForgettingMap<String, Integer> forgettingMap;
 
-    public ThreadSafe(ForgettingMap<String, Integer> forgettingMap) {
+    public ThreadSafeHelper(final ForgettingMap<String, Integer> forgettingMap) {
         this.forgettingMap = forgettingMap;
     }
 

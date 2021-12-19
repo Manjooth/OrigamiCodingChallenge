@@ -1,65 +1,88 @@
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.stream.IntStream;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class ForgettingMapTest {
 
+    public static final String SUCCESS = "Success";
     private static ForgettingMap<String, String> forgettingMap;
-    private static final int MAP_SIZE = 1;
-
-    private static final String KEY = "StringKey";
-    private static final String VALUE = "StringValue";
-    private static final String KEY1 = "StringKey1";
-    private static final String VALUE1 = "StringValue1";
+    private static final int MAP_SIZE = 2;
 
     @BeforeEach
-    void setUp() {
+    void setUp()
+    {
         forgettingMap = new ForgettingMap<>(MAP_SIZE);
+        forgettingMap.add("StringKey", "StringValue");
     }
 
     @Test
-    void addAssociationToForgettingMapTest(){
-        // expected, actual
-        // check map is empty
-        assertEquals(0, forgettingMap.getSize());
-        // add association to map
-        forgettingMap.add(KEY, VALUE);
-        // check map contains 1 association
-        assertEquals(1, forgettingMap.getSize());
+    void shouldBeAbleToAddAssociation()
+    {
+        String response = forgettingMap.add("StringKey1", "StringValue1");
+        assertEquals(SUCCESS, response);
     }
 
     @Test
-    void findAssociationFromForgettingMapTest(){
-        // add association to map
-        forgettingMap.add(KEY, VALUE);
-        // check map contains 1 association
-        assertEquals(1, forgettingMap.getSize());
-        // check find returns VALUE
-        assertEquals(VALUE, forgettingMap.find(KEY));
+    void shouldDoNothingIfAssociationAlreadyContainsKey()
+    {
+        String response = forgettingMap.add("StringKey", "StringValue");
+        assertEquals("Forgetting Map already contains key", response);
     }
 
     @Test
-    void findUnknownAssociationFromForgettingMap(){
-        assertNull(forgettingMap.find("UNKNOWN"));
+    void shouldAddAssociationWhenMapBelowMaximumCapacity()
+    {
+        String response = forgettingMap.add("StringKey2", "StringValue2");
+        assertEquals(SUCCESS, response);
     }
 
     @Test
-    void removeAssociationWhenMapFullTest(){
-        // check map is empty
-        assertEquals(0, forgettingMap.getSize());
-        // add association to map
-        forgettingMap.add(KEY, VALUE);
-        // check map contains 1 association
-        assertEquals(1, forgettingMap.getSize());
-        // check find returns VALUE
-        assertEquals(VALUE, forgettingMap.find(KEY));
+    void shouldRemoveLeastPopularAssociationWhenMapFullTest()
+    {
+        forgettingMap.add("StringKey1", "StringValue1");
+        forgettingMap.add("StringKey2", "StringValue2");
+        String response = forgettingMap.add("StringKey3", "StringValue3");
 
-        // add another association --> max size is 1 so should remove KEY, VALUE
-        forgettingMap.add(KEY1, VALUE1);
-        // check map contains only 1 association
-        assertEquals(1, forgettingMap.getSize());
-        // check find returns VALUE1
-        assertEquals(VALUE1, forgettingMap.find(KEY1));
+        assertEquals(SUCCESS, response);
+    }
+
+    @Test
+    void shouldReturnNullWhenCannotFindAssociation()
+    {
+        String result = forgettingMap.find("Unknown");
+        assertNull(result);
+    }
+
+    @Test
+    void shouldFindAssociationAndUpdatePopularity()
+    {
+        String result = forgettingMap.find("StringKey");
+        assertEquals("StringValue", result);
+    }
+
+    @Test
+    void shouldBeThreadSafe() throws InterruptedException {
+        final ForgettingMap<String, Integer> forgettingMap = new ForgettingMap<>(30);
+        final ThreadSafeHelper threadSafeHelper = new ThreadSafeHelper(forgettingMap);
+
+        ThreadSafeHelper thread1 = new ThreadSafeHelper(forgettingMap);
+        ThreadSafeHelper thread2 = new ThreadSafeHelper(forgettingMap);
+        ThreadSafeHelper thread3 = new ThreadSafeHelper(forgettingMap);
+
+        thread1.start(); thread2.start(); thread3.start();
+
+        while(thread1.isAlive() || thread2.isAlive() || thread3.isAlive()){
+            Thread.sleep(1000);
+        }
+
+        IntStream.range(0, 10).forEach(i -> {
+            // expected, actual
+            assertEquals(i, forgettingMap.find("Thread-1" + i)); // for mac thread names start from 1, on ubuntu start from 1
+            assertEquals(i, forgettingMap.find("Thread-2" + i));
+            assertEquals(i, forgettingMap.find("Thread-3" + i));
+        });
     }
 }

@@ -7,7 +7,7 @@ Type parameters:
 */
 public interface ForgettingMapInterface<K, V> {
 
-    void add(K key, V value); // add an association
+    String add(K key, V value); // add an association
     V find(K key); // find content using the specified key
 
 }
