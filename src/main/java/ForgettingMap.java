@@ -68,6 +68,14 @@ public class ForgettingMap<K,V> implements ForgettingMapInterface<K,V>{
         return null;
     }
 
+    public boolean contains(final K key){
+        return associations.containsKey(key);
+    }
+
+    public int getPopularityScore(final K key){
+        return popularityOfAssociations.get(key);
+    }
+
     private void removeLeastUsedAssociation()
     {
         K leastUsed =  null;

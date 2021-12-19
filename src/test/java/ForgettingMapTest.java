@@ -43,9 +43,9 @@ class ForgettingMapTest {
     void shouldRemoveLeastPopularAssociationWhenMapFullTest()
     {
         forgettingMap.add("StringKey1", "StringValue1");
-        forgettingMap.add("StringKey2", "StringValue2");
-        String response = forgettingMap.add("StringKey3", "StringValue3");
+        String response = forgettingMap.add("StringKey2", "StringValue2");
 
+        assertFalse(forgettingMap.contains("StringKey"));
         assertEquals(SUCCESS, response);
     }
 
@@ -59,14 +59,16 @@ class ForgettingMapTest {
     @Test
     void shouldFindAssociationAndUpdatePopularity()
     {
+        assertEquals(0, forgettingMap.getPopularityScore("StringKey"));
+
         String result = forgettingMap.find("StringKey");
         assertEquals("StringValue", result);
+        assertEquals(1, forgettingMap.getPopularityScore("StringKey"));
     }
 
     @Test
     void shouldBeThreadSafe() throws InterruptedException {
         final ForgettingMap<String, Integer> forgettingMap = new ForgettingMap<>(30);
-        final ThreadSafeHelper threadSafeHelper = new ThreadSafeHelper(forgettingMap);
 
         ThreadSafeHelper thread1 = new ThreadSafeHelper(forgettingMap);
         ThreadSafeHelper thread2 = new ThreadSafeHelper(forgettingMap);
@@ -75,14 +77,14 @@ class ForgettingMapTest {
         thread1.start(); thread2.start(); thread3.start();
 
         while(thread1.isAlive() || thread2.isAlive() || thread3.isAlive()){
-            Thread.sleep(1000);
+            Thread.sleep(10);
         }
 
         IntStream.range(0, 10).forEach(i -> {
             // expected, actual
-            assertEquals(i, forgettingMap.find("Thread-1" + i)); // for mac thread names start from 1, on ubuntu start from 1
+            assertEquals(i, forgettingMap.find("Thread-0" + i)); // for mac thread names start from 1, on ubuntu start from 1
+            assertEquals(i, forgettingMap.find("Thread-1" + i));
             assertEquals(i, forgettingMap.find("Thread-2" + i));
-            assertEquals(i, forgettingMap.find("Thread-3" + i));
         });
     }
 }
