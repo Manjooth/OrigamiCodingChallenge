@@ -5,7 +5,8 @@ import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class ForgettingMapTest {
+class ForgettingMapTest
+{
 
     public static final String SUCCESS = "Success";
     private static ForgettingMap<String, String> forgettingMap;
@@ -67,7 +68,8 @@ class ForgettingMapTest {
     }
 
     @Test
-    void shouldBeThreadSafe() throws InterruptedException {
+    void shouldBeThreadSafe() throws InterruptedException
+    {
         final ForgettingMap<String, Integer> forgettingMap = new ForgettingMap<>(30);
 
         ThreadSafeHelper thread1 = new ThreadSafeHelper(forgettingMap);
@@ -76,11 +78,13 @@ class ForgettingMapTest {
 
         thread1.start(); thread2.start(); thread3.start();
 
-        while(thread1.isAlive() || thread2.isAlive() || thread3.isAlive()){
+        while(thread1.isAlive() || thread2.isAlive() || thread3.isAlive())
+        {
             Thread.sleep(10);
         }
 
-        IntStream.range(0, 10).forEach(i -> {
+        IntStream.range(0, 10).forEach(i ->
+        {
             // expected, actual
             assertEquals(i, forgettingMap.find("Thread-0" + i)); // for mac thread names start from 1, on ubuntu start from 1
             assertEquals(i, forgettingMap.find("Thread-1" + i));

@@ -1,11 +1,12 @@
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 // K, V like generics
-public class ForgettingMap<K,V> implements ForgettingMapInterface<K,V>{
+public final class ForgettingMap<K,V> implements ForgettingMapInterface<K,V>
+{
 
-    private final Map<K, V> associations = new HashMap<>(); // map to store associations
-    private final Map<K, Integer> popularityOfAssociations = new HashMap<>(); // map to store popularity of given associations
+    private final Map<K, V> associations = new ConcurrentHashMap<>(); // map to store associations
+    private final Map<K, Integer> popularityOfAssociations = new ConcurrentHashMap<>(); // map to store popularity of given associations
     private final int maximumCapacity;
 
     /**
@@ -14,8 +15,9 @@ public class ForgettingMap<K,V> implements ForgettingMapInterface<K,V>{
 
      @param maximumCapacity is the max capacity of the forgetting map
      **/
-    public ForgettingMap(final int maximumCapacity) {
-        this.maximumCapacity = maximumCapacity;
+    public ForgettingMap(final int maximumCapacity)
+    {
+        this.maximumCapacity = checkCapacity(maximumCapacity);
     }
 
     /**
@@ -30,15 +32,17 @@ public class ForgettingMap<K,V> implements ForgettingMapInterface<K,V>{
      @return if adding association was successful or not
      **/
     @Override
-    public synchronized String add(final K key, final V value)
+    public String add(final K key, final V value)
     {
         if (containsKey(key))
         {
             return "Forgetting Map already contains key";
-        } else if(isBelowMaximumCapacity() && !containsKey(key))
+        }
+        else if(isBelowMaximumCapacity() && !containsKey(key))
         {
             addAssociationAndPopularity(key, value);
-        } else
+        }
+        else
         {
             removeLeastUsedAssociation();
             addAssociationAndPopularity(key, value);
@@ -58,7 +62,7 @@ public class ForgettingMap<K,V> implements ForgettingMapInterface<K,V>{
      @return the found corresponding value to the key
      **/
     @Override
-    public synchronized V find(final K key)
+    public V find(final K key)
     {
         if(containsKey(key))
         {
@@ -76,11 +80,16 @@ public class ForgettingMap<K,V> implements ForgettingMapInterface<K,V>{
         return popularityOfAssociations.get(key);
     }
 
+    private int checkCapacity(final int maximumCapacity)
+    {
+        return Math.max(maximumCapacity, 0);
+    }
+
     private void removeLeastUsedAssociation()
     {
         K leastUsed =  null;
         int count = Integer.MAX_VALUE;
-        for(K key : popularityOfAssociations.keySet())
+        for(final K key : popularityOfAssociations.keySet())
         {
             if(popularityOfAssociations.get(key) < count)
             {
